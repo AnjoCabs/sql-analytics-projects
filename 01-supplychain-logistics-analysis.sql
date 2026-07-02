@@ -1,107 +1,8 @@
 USE supplychaindb;
 
-
-CREATE TABLE orderList(
-	orderId INT NOT NULL,
-	orderDate DATE NOT NULL,
-	originPort VARCHAR(20) NOT NULL,
-	carrier VARCHAR(20) NOT NULL,
-	TPT INT NOT NULL,
-	serviceLevel VARCHAR(20) NOT NULL,
-    shipAheadDayCount INT NOT NULL, 
-	shipLateDayCount INT NOT NULL, 
-	customer VARCHAR(20) NOT NULL,
-	productId INT NOT NULL,
-	plantCode VARCHAR(20) NOT NULL,
-	destinationPort	 VARCHAR(20) NOT NULL,
-    unitQuantity INT NOT NULL,
-	weight DECIMAL(6,2) NOT NULL, 
-	PRIMARY KEY(orderId)
-);
-
-LOAD DATA LOCAL INFILE 'C:/Users/billy/OneDrive/Desktop/New Dataset/supplychaindataset/Supply chain logisitcs problem.csv'
-INTO TABLE orderList
-FIELDS TERMINATED BY ','
-LINES TERMINATED BY '\n'
-IGNORE 1 LINES;
-
-
-CREATE TABLE freightRates (
-	carrier VARCHAR(20) NOT NULL,
-	origPortCd VARCHAR(20) NOT NULL,
-	destPortCd VARCHAR(20) NOT NULL,
-	minWghQty DECIMAL(12,8) NOT NULL,
-	maxWghQty DECIMAL(12,8) NOT NULL,
-	svcCd VARCHAR(20) NOT NULL,
-	minimumCost DECIMAL(8,2) NOT NULL,
-	rate DECIMAL(8,2) NOT NULL,	
-    modeDsc VARCHAR(20) NOT NULL,
-	tptDayCnt INT NOT NULL,
-    carrierType VARCHAR(20) NOT NULL
-);
-
-LOAD DATA LOCAL INFILE 'C:/Users/billy/OneDrive/Desktop/New Dataset/supplychaindataset/Supply chain logisitcs problem2.csv'
-INTO TABLE freightRates
-FIELDS TERMINATED BY ','
-LINES TERMINATED BY '\n'
-IGNORE 1 LINES;
-
-CREATE TABLE whCosts(
-	WH VARCHAR(20),
-    costsUnit DECIMAL(8,2));
-    
-LOAD DATA LOCAL INFILE 'C:/Users/billy/OneDrive/Desktop/New Dataset/supplychaindataset/Supply chain logisitcs WHCOSTS.csv'
-INTO TABLE whCosts
-FIELDS TERMINATED BY ','
-LINES TERMINATED BY '\n'
-IGNORE 1 LINES;
-
-CREATE TABLE whCapacities (
-	plantId VARCHAR(20) NOT NULL,
-    dailyCapacity INT NOT NULL
-);
-
-LOAD DATA LOCAL INFILE 'C:/Users/billy/OneDrive/Desktop/New Dataset/supplychaindataset/Supply chain logisitcs WHCapacities.csv'
-INTO TABLE whCapacities
-FIELDS TERMINATED BY ','
-LINES TERMINATED BY '\n'
-IGNORE 1 LINES;
-
-CREATE TABLE productsPerPlant(
-	plantCode VARCHAR(20) NOT NULL,
-    productId INT NOT NULL
-);
-
-LOAD DATA LOCAL INFILE 'C:/Users/billy/OneDrive/Desktop/New Dataset/supplychaindataset/Supply chain logisitcs productsperplant.csv'
-INTO TABLE productsPerPlant
-FIELDS TERMINATED BY ','
-LINES TERMINATED BY '\n'
-IGNORE 1 LINES;
-
-CREATE TABLE vmiCustomers (
-	plantCode VARCHAR(20) NOT NULL,
-    customers VARCHAR(50) NOT NULL
-);
-
-LOAD DATA LOCAL INFILE 'C:/Users/billy/OneDrive/Desktop/New Dataset/supplychaindataset/Supply chain logisitcs VMICustomers.csv'
-INTO TABLE vmiCustomers
-FIELDS TERMINATED BY ','
-LINES TERMINATED BY '\n'
-IGNORE 1 LINES;
-
-CREATE TABLE plantPorts (
-	plantCode VARCHAR(20) NOT NULL,
-    `port` VARCHAR(20) NOT NULL
-);
-
-LOAD DATA LOCAL INFILE 'C:/Users/billy/OneDrive/Desktop/New Dataset/supplychaindataset/Supply chain logisitcs plantPorts.csv'
-INTO TABLE plantPorts
-FIELDS TERMINATED BY ','
-LINES TERMINATED BY '\n'
-IGNORE 1 LINES;
-
 -- TRANSPORTATION PERFORMANCE
 -- 1. Which carriers have the highest late shipment counts?
+
 SELECT 
     carrier,
     COUNT(orderId) AS totalOrdersHandled,
@@ -116,6 +17,7 @@ GROUP BY carrier
 ORDER BY totalLateShipments DESC;
 
 -- 2. Which routes have the longest transportation times?
+
 SELECT 
     originPort,
     destinationPort,
@@ -130,6 +32,7 @@ ORDER BY totalActualTransitTime DESC;
 
 
 -- 3. Which service levels perform best?
+
 SELECT 
     serviceLevel,
     COUNT(orderId) AS totalOrders,
@@ -145,6 +48,7 @@ ORDER BY onTimeRatePercentage DESC;
 
 -- WAREHOUSE OPTIMIZATION
 -- 4. Which warehouses exceed capacity limits?
+
 WITH dailyWarehouseVolume AS (
     SELECT 
         plantCode AS warehouseId,
@@ -166,6 +70,7 @@ ORDER BY daysExceededCount DESC;
 SELECT * FROM orderList;
 
 -- 5.Which plants handle the highest shipment volume?
+
 SELECT 
     plantCode AS plantId,
     COUNT(orderId) AS totalOrdersFulfilled,
@@ -179,6 +84,7 @@ ORDER BY totalUnitsShipped DESC;
 
 -- COST OPTIMIZATION
 -- 6. Which shipping routes are most expensive?
+
 WITH calculatedOrders AS (
     SELECT 
         o.originPort,
@@ -212,6 +118,7 @@ GROUP BY
 ORDER BY totalLaneSpend DESC;
 
 -- 7. Which carriers provide best cost-to-service performance?
+
 WITH shipmentCosts AS (
     SELECT 
         o.carrier,
@@ -247,6 +154,7 @@ ORDER BY
     
 -- CUSTOMER SERVICE ANALYSIS
 -- 8. Which customers experience the most delays?
+
 SELECT 
     customer,
     COUNT(orderId) AS totalOrdersPlaced,
@@ -264,6 +172,7 @@ ORDER BY
     delayRatePercentage DESC;
     
 -- 9. Which customers generate the highest shipping demand?
+
 SELECT 
     customer,
     COUNT(orderId) AS totalOrdersPlaced,
@@ -279,6 +188,7 @@ ORDER BY
    
   -- ROUTE & NETWORK OPTIMIZATION 
 -- 10. Which ports are busiest?
+
 WITH busiestPorts AS (
     SELECT 
         originPort AS portCode,
@@ -303,6 +213,7 @@ ORDER BY totalUnitsMoved DESC
 LIMIT 10;
 
 -- 11. Which transportation modes are most efficient?
+
 WITH calculatedShipments AS (
     SELECT 
         f.modeDsc AS shippingMode,
@@ -338,6 +249,7 @@ ORDER BY costPerKg ASC;
 
 -- ADVANCED BUSINESS ANALYTICS QUESTIONS
 -- 12. Which products create the highest logistics burden?
+
 SELECT 
     productId,
     COUNT(orderId) AS totalOrdersPlaced,
@@ -355,6 +267,7 @@ ORDER BY
 	totalDelayedShipments DESC;
     
 -- 13. Which plants have limited product diversity?
+
 SELECT 
     ppp.plantCode AS plantId,
     COUNT(DISTINCT ppp.productId) AS assignedProductCount,
@@ -407,6 +320,7 @@ WHERE rgt.totalRouteOrders >= 10
 ORDER BY carrierMarketSharePercentage DESC;
 
 -- 15. What factors most influence shipping delays?
+
 SELECT 
     carrier,
     originPort,
